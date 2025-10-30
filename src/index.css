@@ -1,0 +1,55 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial;
+  background: #0f172a;
+  color: #e6eef8;
+}
+.app {
+  padding: 16px;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.canvasWrap {
+  margin-top: 12px;
+  display: flex;
+  gap: 12px;
+}
+.canvas {
+  background: #071033;
+  border-radius: 8px;
+}
+.controls {
+  width: 240px;
+}
+.monsterList {
+  margin-top: 8px;
+  max-height: 280px;
+  overflow: auto;
+}
+.monsterCard {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.button {
+  background: #2563eb;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+}
+.select {
+  width: 100%;
+  padding: 6px;
+}
