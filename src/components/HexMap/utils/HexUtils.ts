@@ -1,3 +1,5 @@
+import type { CSSProperties } from "vue";
+
 export const rows = 24;
 export const cols = 36;
 export const hexWidth = 42.5;
@@ -8,7 +10,7 @@ export const getRowsForColumn = (colIndex: number) => {
     return isOdd ? rows - 1 : rows;
 };
 
-export const getColumnStyle = (colIndex: number) => {
+export const getColumnStyle = (colIndex: number):CSSProperties => {
     const isOdd = colIndex % 2 !== 0;
     return {
         display: "flex",
@@ -19,7 +21,7 @@ export const getColumnStyle = (colIndex: number) => {
     };
 };
 
-export const getHexStyle = () => ({
+export const getHexBaseStyle = () => ({
     width: `${hexWidth}px`,
     height: `${hexHeight}px`,
     clipPath: "polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)",

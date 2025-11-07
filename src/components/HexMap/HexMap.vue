@@ -11,14 +11,20 @@
             v-for="rowIndex in getRowsForColumn(colIndex)"
             :key="rowIndex"
             class="hex"
-            @click="handleHexClick(colIndex, rowIndex)"
-            :style="getHexStyle()"
+            :style="getHexBaseStyle()"
+            @click="onHexClick(colIndex, rowIndex)"
+            @mouseenter="onHexHover(colIndex, rowIndex)"
         >
-          <template v-for="(entity, index) in entitiesData">
+          <div v-if="isReachable(colIndex, rowIndex)" class="hex-highlight" />
+          <div v-if="isPath(colIndex, rowIndex)" class="hex-path" />
+          <template v-for="(entity, index) in entitiesData" :key="index">
             <Player
                 v-if="entity.type === 'player' && entity.col === colIndex && entity.row === rowIndex"
-                :key="index"
                 :color="entity.color"
+                @click.stop="selectPlayer(entity)"
+            />
+            <Obstacle
+                v-else-if="entity.type === 'obstacle' && entity.col === colIndex && entity.row === rowIndex"
             />
           </template>
         </div>
@@ -28,18 +34,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import Player from "../Entities/Player.vue";
+import Obstacle from "../Entities/Obstacle.vue";
 import {
   cols,
   getColumnStyle,
   getRowsForColumn,
-  getHexStyle, handleHexClick,
+  getHexBaseStyle,
 } from "./utils/HexUtils";
-import Player from "../Player/Player.vue";
-import { entities, type Entity } from "@/data/entities";
+import { useHexMap } from "./hooks/useHexMap";
 
-const entitiesData = ref<Entity[]>(entities);
-
+const {
+  entitiesData,
+  isReachable,
+  isPath,
+  selectPlayer,
+  onHexClick,
+  onHexHover,
+} = useHexMap();
 </script>
 
 <style scoped>
@@ -65,5 +77,29 @@ const entitiesData = ref<Entity[]>(entities);
 .hex-column {
   display: flex;
   flex-direction: column;
+}
+
+.hex {
+  position: relative;
+  clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  cursor: pointer;
+}
+
+.hex-highlight,
+.hex-path {
+  position: absolute;
+  inset: 0;
+  clip-path: inherit;
+  pointer-events: none;
+}
+
+.hex-highlight {
+  background-color: rgba(0, 255, 0, 0.25);
+}
+
+.hex-path {
+  background-color: rgba(255, 0, 255, 0.35);
+  outline: 2px solid rgba(255, 0, 255, 0.6);
+  outline-offset: -2px;
 }
 </style>

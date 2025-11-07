@@ -17,7 +17,8 @@ export type MonsterEntity = BaseEntity & {
 
 export type ObstacleEntity = BaseEntity & {
     type: "obstacle";
-    solid: boolean;
+    col: number;
+    row: number;
 };
 
 export type Entity = PlayerEntity | MonsterEntity | ObstacleEntity;
