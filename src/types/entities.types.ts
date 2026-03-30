@@ -13,6 +13,17 @@ export type PlayerEntity = BaseEntity & {
 export type MonsterEntity = BaseEntity & {
     type: "monster";
     hp: number;
+    id: string;
+    color: string;
+    speed: number;
+    trail: { col: number; row: number }[];
+    behaviors: MonsterBehavior[];
+    _recentPositions?: { col: number; row: number }[];
+    pumpkinTarget?: { col: number; row: number };
+    waitAtPumpkin?: boolean;
+    travellerTargets?: { col: number; row: number }[];
+    currentTravellerIndex?: number;
+    currentPatrolIndex?: number;
 };
 
 export type ObstacleEntity = BaseEntity & {
@@ -22,3 +33,11 @@ export type ObstacleEntity = BaseEntity & {
 };
 
 export type Entity = PlayerEntity | MonsterEntity | ObstacleEntity;
+
+export type MonsterBehavior =
+    | "fellowship"
+    | "seek_furthest"
+    | "patrol_area"
+    | "pumpkin_lover"
+    | "traveller"
+    | "predator";
