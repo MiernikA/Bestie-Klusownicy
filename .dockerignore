@@ -1,0 +1,11 @@
+.git
+.gitignore
+.vscode
+node_modules
+dist
+backend/*.db
+backend/__pycache__
+backend/app/__pycache__
+backend/app/core/__pycache__
+backend/app/game/__pycache__
+*.log

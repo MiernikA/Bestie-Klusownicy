@@ -8,11 +8,23 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+frontend/node_modules
+backend/.venv
+venv
+.venv
 .DS_Store
 dist
+frontend/dist
+frontend/.vite
 dist-ssr
 coverage
 *.local
+.env
+.env.*
+frontend/.env
+frontend/.env.*
+backend/.env
+backend/.env.*
 
 # Editor directories and files
 .vscode/*
@@ -27,6 +39,11 @@ coverage
 *.tsbuildinfo
 
 .eslintcache
+*.db
+*.sqlite
+*.sqlite3
+__pycache__/
+*.py[cod]
 
 # Cypress
 /cypress/videos/

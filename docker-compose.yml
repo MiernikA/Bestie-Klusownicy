@@ -1,0 +1,26 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: bestie-backend
+    environment:
+      DATABASE_URL: sqlite:////data/bestie_klusownicy.db
+    ports:
+      - "8000:8000"
+    volumes:
+      - bestie_sqlite_data:/data
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bestie-frontend
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:8000
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+
+volumes:
+  bestie_sqlite_data:

@@ -1,38 +1,116 @@
 # Bestie i Klusownicy
 
-This template should help get you started developing with Vue 3 in Vite.
+Repo ma teraz układ monorepo:
 
-## Recommended IDE Setup
+- `backend/` - FastAPI, logika gry, SQLite, WebSockety
+- `frontend/` - Vue + Vite, render planszy i klient API/WebSocket
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## Uruchomienie
 
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+Całość:
 
 ```sh
-npm install
+docker compose up --build
 ```
 
-### Compile and Hot-Reload for Development
+Adresy:
+
+- frontend: `http://localhost:5173`
+- backend: `http://localhost:8000`
+- Swagger: `http://localhost:8000/docs`
+
+## Development
+
+Backend:
 
 ```sh
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+Frontend:
+
+```sh
+cd frontend
+npm install
 npm run dev
 ```
 
-### Compile and Minify for Production
+## Struktura backendu
 
-```sh
-npm run build
-```
+`backend/app/main.py`
+
+- start aplikacji FastAPI
+- CORS
+- inicjalizacja tabel
+
+`backend/app/api.py`
+
+- REST API gry
+- endpoint WebSocket dla synchronizacji wielu okien
+
+`backend/app/core/config.py`
+
+- konfiguracja aplikacji
+
+`backend/app/db.py`
+
+- SQLAlchemy engine i sesje
+
+`backend/app/models.py`
+
+- model sesji gry
+
+`backend/app/schemas.py`
+
+- kontrakty request/response
+
+`backend/app/websockets.py`
+
+- broadcast stanu do podłączonych klientów
+
+`backend/app/game/`
+
+- `service.py` - główna logika gry
+- `pathfinding.py` - ruch po heksach
+- `monsters.py` - AI potworów
+- `seeds.py` - stan początkowy planszy
+- `board.py` - geometria planszy
+
+## Struktura frontendu
+
+`frontend/src/App.vue`
+
+- główny shell aplikacji
+
+`frontend/src/components/HexMap/HexMap.vue`
+
+- widok planszy i panel sterowania
+
+`frontend/src/components/HexMap/hooks/useHexMap.ts`
+
+- klient API i WebSocket
+- synchronizacja stanu planszy
+
+`frontend/src/components/Entities/`
+
+- render graczy, potworów i przeszkód
+
+`frontend/src/types/`
+
+- typy encji i ruchu
+
+## Co zostało usunięte
+
+- stara lokalna logika gry po stronie Vue
+- nieużywane moduły pathfindingu i ruchu potworów w frontendzie
+- nieużywane dane startowe frontendu
+- zbędne artefakty logów i buildów
+
+## Jak działa program
+
+1. Frontend pobiera stan sesji z backendu.
+2. Akcje użytkownika trafiają do FastAPI.
+3. Backend liczy nowy stan, zapisuje go w SQLite i rozsyła przez WebSocket.
+4. Wszystkie otwarte okna dostają ten sam stan i renderują go na bieżąco.
