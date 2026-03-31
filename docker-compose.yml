@@ -3,24 +3,43 @@ services:
     build:
       context: ./backend
     container_name: bestie-backend
+    restart: unless-stopped
     environment:
-      DATABASE_URL: sqlite:////data/bestie_klusownicy.db
+      DATABASE_URL: ${DATABASE_URL}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
     ports:
       - "8000:8000"
     volumes:
       - bestie_sqlite_data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os, urllib.request; urllib.request.urlopen(os.environ['BACKEND_HEALTHCHECK_URL'])"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: bestie-frontend
+    restart: unless-stopped
     environment:
-      VITE_API_PROXY_TARGET: http://backend:8000
+      APP_API_BASE_URL: ${APP_API_BASE_URL}
+      APP_WS_BASE_URL: ${APP_WS_BASE_URL}
+      NGINX_API_UPSTREAM: ${NGINX_API_UPSTREAM}
     ports:
-      - "5173:5173"
+      - "80:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "${FRONTEND_HEALTHCHECK_URL}"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 volumes:
   bestie_sqlite_data:

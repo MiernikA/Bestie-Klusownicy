@@ -1,23 +1,58 @@
 # Bestie i Klusownicy
 
-Repo ma teraz układ monorepo:
+Monorepo z:
 
 - `backend/` - FastAPI, logika gry, SQLite, WebSockety
-- `frontend/` - Vue + Vite, render planszy i klient API/WebSocket
+- `frontend/` - Vue + Vite, klient HTTP/WebSocket
 
-## Uruchomienie
+## Deployment
 
-Całość:
+1. Skopiuj `.env.example` do `.env`.
+2. Uzupełnij wszystkie adresy i hosty przez env.
+3. Uruchom:
 
 ```sh
-docker compose up --build
+docker compose up --build -d
 ```
 
-Adresy:
+Repo nie zawiera twardo wpisanych lokalnych adresów do komunikacji frontend-backend. Połączenia są sterowane przez:
 
-- frontend: `http://localhost:5173`
-- backend: `http://localhost:8000`
-- Swagger: `http://localhost:8000/docs`
+- `APP_API_BASE_URL`
+- `APP_WS_BASE_URL`
+- `NGINX_API_UPSTREAM`
+- `BACKEND_HEALTHCHECK_URL`
+- `FRONTEND_HEALTHCHECK_URL`
+- `CORS_ORIGINS`
+- `ALLOWED_HOSTS`
+
+## Zmienne środowiskowe
+
+Backend:
+
+- `DATABASE_URL` - URL bazy danych
+- `BACKEND_HEALTHCHECK_URL` - adres używany przez healthcheck backendu
+- `CORS_ORIGINS` - lista originów CORS w formacie JSON
+- `ALLOWED_HOSTS` - lista hostów do `TrustedHostMiddleware` w formacie JSON
+
+Frontend / reverse proxy:
+
+- `APP_API_BASE_URL` - adres API używany przez frontend w przeglądarce
+- `APP_WS_BASE_URL` - adres WebSocket używany przez frontend w przeglądarce
+- `NGINX_API_UPSTREAM` - upstream backendu używany przez Nginx wewnątrz kontenera
+- `FRONTEND_HEALTHCHECK_URL` - adres używany przez healthcheck frontendu
+
+Przykład:
+
+```env
+DATABASE_URL=sqlite:////data/bestie_klusownicy.db
+BACKEND_HEALTHCHECK_URL=http://backend:8000/api/health
+FRONTEND_HEALTHCHECK_URL=http://frontend/
+CORS_ORIGINS=["https://app.example.com"]
+ALLOWED_HOSTS=["app.example.com","api.example.com"]
+APP_API_BASE_URL=https://app.example.com/api
+APP_WS_BASE_URL=wss://app.example.com/api/ws
+NGINX_API_UPSTREAM=http://backend:8000/api/
+```
 
 ## Development
 
@@ -34,83 +69,16 @@ Frontend:
 ```sh
 cd frontend
 npm install
+```
+
+Jeżeli chcesz używać proxy Vite w development, ustaw `VITE_API_PROXY_TARGET` we własnym lokalnym env, np. `frontend/.env.local`.
+
+Potem uruchom:
+
+```sh
 npm run dev
 ```
 
-## Struktura backendu
+## Ograniczenie
 
-`backend/app/main.py`
-
-- start aplikacji FastAPI
-- CORS
-- inicjalizacja tabel
-
-`backend/app/api.py`
-
-- REST API gry
-- endpoint WebSocket dla synchronizacji wielu okien
-
-`backend/app/core/config.py`
-
-- konfiguracja aplikacji
-
-`backend/app/db.py`
-
-- SQLAlchemy engine i sesje
-
-`backend/app/models.py`
-
-- model sesji gry
-
-`backend/app/schemas.py`
-
-- kontrakty request/response
-
-`backend/app/websockets.py`
-
-- broadcast stanu do podłączonych klientów
-
-`backend/app/game/`
-
-- `service.py` - główna logika gry
-- `pathfinding.py` - ruch po heksach
-- `monsters.py` - AI potworów
-- `seeds.py` - stan początkowy planszy
-- `board.py` - geometria planszy
-
-## Struktura frontendu
-
-`frontend/src/App.vue`
-
-- główny shell aplikacji
-
-`frontend/src/components/HexMap/HexMap.vue`
-
-- widok planszy i panel sterowania
-
-`frontend/src/components/HexMap/hooks/useHexMap.ts`
-
-- klient API i WebSocket
-- synchronizacja stanu planszy
-
-`frontend/src/components/Entities/`
-
-- render graczy, potworów i przeszkód
-
-`frontend/src/types/`
-
-- typy encji i ruchu
-
-## Co zostało usunięte
-
-- stara lokalna logika gry po stronie Vue
-- nieużywane moduły pathfindingu i ruchu potworów w frontendzie
-- nieużywane dane startowe frontendu
-- zbędne artefakty logów i buildów
-
-## Jak działa program
-
-1. Frontend pobiera stan sesji z backendu.
-2. Akcje użytkownika trafiają do FastAPI.
-3. Backend liczy nowy stan, zapisuje go w SQLite i rozsyła przez WebSocket.
-4. Wszystkie otwarte okna dostają ten sam stan i renderują go na bieżąco.
+Aktualna synchronizacja WebSocket działa w pamięci procesu backendu. To znaczy, że aplikację należy uruchamiać jako pojedynczą instancję backendu, dopóki broadcast nie zostanie przeniesiony do wspólnego brokera.

@@ -1,4 +1,5 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { apiBaseUrl, wsBaseUrl } from "@/config";
 import type { Entity, MonsterEntity, PlayerEntity } from "@/types/entities.types";
 import type { Hex, MovementRecord } from "@/types/game.types";
 
@@ -80,7 +81,7 @@ async function postGameAction<TPayload extends Record<string, unknown>>(
     endpoint: string,
     payload: TPayload,
 ): Promise<GameState> {
-    const response = await fetch(`/api${endpoint}`, {
+    const response = await fetch(`${apiBaseUrl}${endpoint}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -168,9 +169,8 @@ export function useHexMap() {
         if (websocket && websocket.readyState === WebSocket.OPEN) return;
         if (websocket && websocket.readyState === WebSocket.CONNECTING) return;
 
-        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         websocket = new WebSocket(
-            `${protocol}//${window.location.host}/api/ws/game?sessionId=${encodeURIComponent(SESSION_ID)}`,
+            `${wsBaseUrl}/game?sessionId=${encodeURIComponent(SESSION_ID)}`,
         );
 
         websocket.addEventListener("open", () => {

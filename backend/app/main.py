@@ -1,11 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from app.api import router
 from app.core.config import settings
 from app.db import Base, engine
 
 app = FastAPI(title=settings.app_name)
+
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
 
 app.add_middleware(
     CORSMiddleware,

@@ -6,12 +6,12 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiProxyTarget = env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:8000'
+  const apiProxyTarget = env.VITE_API_PROXY_TARGET
 
   return {
     plugins: [
       vue(),
-      vueDevTools(),
+      mode === 'development' && vueDevTools(),
     ],
     resolve: {
       alias: {
@@ -21,13 +21,15 @@ export default defineConfig(({ mode }) => {
     server: {
       host: '0.0.0.0',
       port: 5173,
-      proxy: {
-        '/api': {
-          target: apiProxyTarget,
-          changeOrigin: true,
-          ws: true,
-        },
-      },
+      proxy: apiProxyTarget
+        ? {
+            '/api': {
+              target: apiProxyTarget,
+              changeOrigin: true,
+              ws: true,
+            },
+          }
+        : undefined,
     },
   }
 })
