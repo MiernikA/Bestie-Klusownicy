@@ -1,4 +1,4 @@
-<img width="1920" height="1758" alt="karty3" src="https://github.com/user-attachments/assets/0324c185-f1f7-42e9-bcbb-fde7fc19b149" /><img width="1920" height="1758" alt="karty2" src="https://github.com/user-attachments/assets/f76e7765-6a22-4516-aef1-2cbcac4359c6" /><img width="1920" height="1758" alt="karty1" src="https://github.com/user-attachments/assets/edcc65e5-0be9-4d6d-8904-fe3cfad4420c" /># Bestie i Klusownicy
+# Bestie i Klusownicy
 
 🎮 O grze
 
