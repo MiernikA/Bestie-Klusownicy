@@ -20,7 +20,7 @@ Aplikaja jest nieodłączną częścią gry planszowej
 <img width="3508" height="2480" alt="playersHP" src="https://github.com/user-attachments/assets/50a86e52-29a1-4034-bf11-83005af3c499" />
 
 
-##Autorzy:
+# Autorzy:
 - Adrian Miernik
 - Marcin Syguła
 - Jakub Bednarz
