@@ -5,7 +5,7 @@
 Hunters & Beasts to turowa gra planszowa dla czterech graczy.
 Każdy z graczy wciela się w kłusownika, którego zadaniem jest odnalezienie i upolowanie właściwej bestii spośród wielu poruszających się po planszy.
 
-Aplikaja jest nieodłączną częścią gry planszowej
+Aplikacja jest nieodłączną częścią gry planszowej: https://bestie-klusownicy.vercel.app/
 
 
 # Autorzy:
