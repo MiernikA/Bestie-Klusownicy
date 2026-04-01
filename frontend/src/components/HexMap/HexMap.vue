@@ -61,31 +61,31 @@
     <div class="map-stage">
       <div class="map-frame" :style="mapStageStyle">
         <div class="map-background" :style="mapScaleStyle">
-          <svg class="movement-overlay" viewBox="0 0 1200 900" preserveAspectRatio="none">
-            <g v-for="move in movementLines" :key="move.key">
-              <line
-                class="movement-line-shadow"
-                :x1="move.x1"
-                :y1="move.y1"
-                :x2="move.x2"
-                :y2="move.y2"
-              />
-              <line
-                class="movement-line"
-                :x1="move.x1"
-                :y1="move.y1"
-                :x2="move.x2"
-                :y2="move.y2"
-                :style="{ stroke: move.color }"
-              />
-              <polygon
-                class="movement-arrow"
-                :points="move.arrowPoints"
-                :style="{ fill: move.color }"
-              />
-            </g>
-          </svg>
           <div class="map-container">
+            <svg class="movement-overlay" viewBox="0 0 1200 900" preserveAspectRatio="xMinYMin meet">
+              <g v-for="move in movementLines" :key="move.key">
+                <line
+                  class="movement-line-shadow"
+                  :x1="move.x1"
+                  :y1="move.y1"
+                  :x2="move.x2"
+                  :y2="move.y2"
+                />
+                <line
+                  class="movement-line"
+                  :x1="move.x1"
+                  :y1="move.y1"
+                  :x2="move.x2"
+                  :y2="move.y2"
+                  :style="{ stroke: move.color }"
+                />
+                <polygon
+                  class="movement-arrow"
+                  :points="move.arrowPoints"
+                  :style="{ fill: move.color }"
+                />
+              </g>
+            </svg>
             <div
               v-for="(col, colIndex) in cols"
               :key="colIndex"
@@ -293,8 +293,8 @@ const mapScale = computed(() => {
 });
 
 const mapStageStyle = computed(() => ({
-  width: `${Math.round(BASE_MAP_WIDTH * mapScale.value) + FRAME_PADDING * 2}px`,
-  height: `${Math.round(BASE_MAP_HEIGHT * mapScale.value) + FRAME_PADDING * 2}px`,
+  width: `${BASE_MAP_WIDTH * mapScale.value + FRAME_PADDING * 2}px`,
+  height: `${BASE_MAP_HEIGHT * mapScale.value + FRAME_PADDING * 2}px`,
 }));
 
 const mapScaleStyle = computed(() => ({
@@ -700,6 +700,7 @@ watch(
   inset: 0;
   width: 100%;
   height: 100%;
+  display: block;
   pointer-events: none;
   z-index: 2;
 }
@@ -709,6 +710,7 @@ watch(
   z-index: 1;
   display: flex;
   align-items: flex-start;
+  box-sizing: border-box;
   padding: 2.5px 13.3px;
   width: 1200px;
   height: 900px;

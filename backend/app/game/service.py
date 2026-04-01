@@ -105,7 +105,7 @@ def select_player(db: Session, color: str, session_id: str = "default") -> dict:
     )
     if entity and state["phase"] == "players" and state["currentPlayerColor"] == color:
         _select_player(state, entity, force=True)
-    return save_state(db, session, state)
+    return _decorate_state(state)
 
 
 def hover_hex(db: Session, col: int, row: int, session_id: str = "default") -> dict:
@@ -118,7 +118,7 @@ def hover_hex(db: Session, col: int, row: int, session_id: str = "default") -> d
             {"col": col, "row": row},
             state["reachable"],
         )
-    return save_state(db, session, state)
+    return _decorate_state(state)
 
 
 def click_hex(db: Session, col: int, row: int, session_id: str = "default") -> dict:
@@ -126,14 +126,14 @@ def click_hex(db: Session, col: int, row: int, session_id: str = "default") -> d
     state = _clone_state(session.state)
     selected = _selected_player_from_state(state)
     if not selected:
-        return save_state(db, session, state)
+        return _decorate_state(state)
 
     target = next(
         (hex_ for hex_ in state["reachable"] if hex_["col"] == col and hex_["row"] == row),
         None,
     )
     if not target:
-        return save_state(db, session, state)
+        return _decorate_state(state)
 
     path = find_path(
         {"col": selected["col"], "row": selected["row"]},
@@ -141,7 +141,7 @@ def click_hex(db: Session, col: int, row: int, session_id: str = "default") -> d
         state["reachable"],
     )
     if not path or len(path) > 5:
-        return save_state(db, session, state)
+        return _decorate_state(state)
 
     _save_snapshot(state)
     from_tile = {"col": selected["col"], "row": selected["row"]}
@@ -169,7 +169,7 @@ def undo_move(db: Session, session_id: str = "default") -> dict:
     session = get_or_create_session(db, session_id)
     state = _clone_state(session.state)
     if not state["history"]:
-        return save_state(db, session, state)
+        return _decorate_state(state)
     snapshot = state["history"].pop()
     restored = _restore_snapshot(snapshot, state["history"])
     return save_state(db, session, restored)

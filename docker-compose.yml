@@ -8,6 +8,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       CORS_ORIGINS: ${CORS_ORIGINS}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      BACKEND_HEALTHCHECK_URL: ${BACKEND_HEALTHCHECK_URL}
     ports:
       - "8000:8000"
     volumes:
@@ -29,6 +30,7 @@ services:
       APP_API_BASE_URL: ${APP_API_BASE_URL}
       APP_WS_BASE_URL: ${APP_WS_BASE_URL}
       NGINX_API_UPSTREAM: ${NGINX_API_UPSTREAM}
+      FRONTEND_HEALTHCHECK_URL: ${FRONTEND_HEALTHCHECK_URL}
     ports:
       - "80:80"
     depends_on:

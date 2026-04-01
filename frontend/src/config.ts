@@ -13,15 +13,8 @@ const runtimeConfig = window.__APP_CONFIG__ ?? {};
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, "");
 
-const envApiUrl = import.meta.env.VITE_API_URL;
-
 export const apiBaseUrl = trimTrailingSlash(
-  runtimeConfig.API_BASE_URL || envApiUrl,
-);
-
-const envWsUrl = import.meta.env.VITE_API_URL?.replace("https", "wss").replace(
-  "http",
-  "ws",
+  runtimeConfig.API_BASE_URL || "/api",
 );
 
 const defaultWsBaseUrl = (() => {
@@ -30,5 +23,5 @@ const defaultWsBaseUrl = (() => {
 })();
 
 export const wsBaseUrl = trimTrailingSlash(
-  runtimeConfig.WS_BASE_URL || envWsUrl || defaultWsBaseUrl,
+  runtimeConfig.WS_BASE_URL || defaultWsBaseUrl,
 );

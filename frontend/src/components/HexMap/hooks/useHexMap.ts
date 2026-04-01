@@ -52,6 +52,105 @@ const SESSION_ID = "default";
 const STATE_SYNC_INTERVAL_MS = 15000;
 const WEBSOCKET_RECONNECT_DELAY_MS = 1000;
 
+const isValidTile = (col: number, row: number) => {
+    if (col < 0 || col >= 36) return false;
+    const maxRow = col % 2 !== 0 ? 23 : 24;
+    return row >= 1 && row <= maxRow;
+};
+
+const getNeighbors = (hex: Hex): Hex[] => {
+    const isOdd = hex.col % 2 !== 0;
+    const candidates = isOdd
+        ? [
+            { col: hex.col + 1, row: hex.row },
+            { col: hex.col + 1, row: hex.row + 1 },
+            { col: hex.col, row: hex.row + 1 },
+            { col: hex.col - 1, row: hex.row + 1 },
+            { col: hex.col - 1, row: hex.row },
+            { col: hex.col, row: hex.row - 1 },
+        ]
+        : [
+            { col: hex.col + 1, row: hex.row - 1 },
+            { col: hex.col + 1, row: hex.row },
+            { col: hex.col, row: hex.row + 1 },
+            { col: hex.col - 1, row: hex.row },
+            { col: hex.col - 1, row: hex.row - 1 },
+            { col: hex.col, row: hex.row - 1 },
+        ];
+
+    return candidates.filter((neighbor) => isValidTile(neighbor.col, neighbor.row));
+};
+
+const hexDistance = (a: Hex, b: Hex) => {
+    const ax = a.col;
+    const az = a.row - (a.col - (a.col & 1)) / 2;
+    const ay = -ax - az;
+    const bx = b.col;
+    const bz = b.row - (b.col - (b.col & 1)) / 2;
+    const by = -bx - bz;
+    return Math.max(Math.abs(ax - bx), Math.abs(ay - by), Math.abs(az - bz));
+};
+
+const findPath = (start: Hex, end: Hex, allowed: Hex[]): Hex[] => {
+    const allowedSet = new Set(allowed.map((hex) => `${hex.col},${hex.row}`));
+    const openNodes: Hex[] = [start];
+    const cameFrom = new Map<string, string>();
+    const gScore = new Map<string, number>([[`${start.col},${start.row}`, 0]]);
+    const fScore = new Map<string, number>([[`${start.col},${start.row}`, hexDistance(start, end)]]);
+
+    while (openNodes.length > 0) {
+        let currentIndex = 0;
+
+        for (let index = 1; index < openNodes.length; index += 1) {
+            const candidate = openNodes[index];
+            const candidateScore = fScore.get(`${candidate.col},${candidate.row}`) ?? Number.POSITIVE_INFINITY;
+            const current = openNodes[currentIndex];
+            const currentScore = fScore.get(`${current.col},${current.row}`) ?? Number.POSITIVE_INFINITY;
+
+            if (candidateScore < currentScore) {
+                currentIndex = index;
+            }
+        }
+
+        const current = openNodes[currentIndex];
+        const currentKey = `${current.col},${current.row}`;
+
+        if (current.col === end.col && current.row === end.row) {
+            const path: Hex[] = [current];
+            let walkKey = currentKey;
+
+            while (cameFrom.has(walkKey)) {
+                const previousKey = cameFrom.get(walkKey)!;
+                const [col, row] = previousKey.split(",");
+                path.unshift({ col: Number(col), row: Number(row) });
+                walkKey = previousKey;
+            }
+
+            return path;
+        }
+
+        openNodes.splice(currentIndex, 1);
+
+        for (const neighbor of getNeighbors(current)) {
+            const neighborKey = `${neighbor.col},${neighbor.row}`;
+            if (!allowedSet.has(neighborKey)) continue;
+
+            const tentativeG = (gScore.get(currentKey) ?? Number.POSITIVE_INFINITY) + 1;
+            if (tentativeG >= (gScore.get(neighborKey) ?? Number.POSITIVE_INFINITY)) continue;
+
+            cameFrom.set(neighborKey, currentKey);
+            gScore.set(neighborKey, tentativeG);
+            fScore.set(neighborKey, tentativeG + hexDistance(neighbor, end));
+
+            if (!openNodes.some((node) => node.col === neighbor.col && node.row === neighbor.row)) {
+                openNodes.push(neighbor);
+            }
+        }
+    }
+
+    return [];
+};
+
 const emptyState = (): GameState => ({
     entitiesData: [],
     reachable: [],
@@ -106,6 +205,7 @@ export function useHexMap() {
     const pendingRemoveMonster = ref<MonsterEntity | null>(null);
     const requestInFlight = ref(0);
     const lastHoveredHexKey = ref<string | null>(null);
+    const localHoveredPath = ref<Hex[]>([]);
     const websocketConnected = ref(false);
     let syncIntervalId: number | null = null;
     let reconnectTimeoutId: number | null = null;
@@ -141,6 +241,10 @@ export function useHexMap() {
             nextState.phase !== "players"
         ) {
             lastHoveredHexKey.value = null;
+        }
+
+        if (nextState.phase !== "players") {
+            localHoveredPath.value = [];
         }
     };
 
@@ -257,20 +361,23 @@ export function useHexMap() {
 
     const resetBoard = async () => {
         lastHoveredHexKey.value = null;
+        localHoveredPath.value = [];
         await runAction("/game/reset", {});
     };
 
     const undoLastMove = async () => {
         lastHoveredHexKey.value = null;
+        localHoveredPath.value = [];
         await runAction("/game/undo", {});
     };
 
     const triggerMonsterTurn = async () => {
         lastHoveredHexKey.value = null;
+        localHoveredPath.value = [];
         await runAction("/game/monster-turn", {});
     };
 
-    const onHexHover = async (col: number, row: number) => {
+    const onHexHover = (col: number, row: number) => {
         if (requestInFlight.value > 0) return;
         if (state.value.phase !== "players") return;
         if (!state.value.currentPlayerColor) return;
@@ -279,11 +386,22 @@ export function useHexMap() {
         if (lastHoveredHexKey.value === hexKey) return;
 
         lastHoveredHexKey.value = hexKey;
-        await runAction("/game/hover-hex", { col, row });
+        const player = currentPlayer.value;
+        if (!player) {
+            localHoveredPath.value = [];
+            return;
+        }
+
+        localHoveredPath.value = findPath(
+            { col: player.col, row: player.row },
+            { col, row },
+            state.value.reachable,
+        );
     };
 
     const onHexClick = async (col: number, row: number) => {
         lastHoveredHexKey.value = null;
+        localHoveredPath.value = [];
         await runAction("/game/click-hex", { col, row });
     };
 
@@ -302,7 +420,7 @@ export function useHexMap() {
     );
 
     const pathSet = computed(
-        () => new Set(state.value.hoveredPath.map((hex) => `${hex.col},${hex.row}`)),
+        () => new Set(localHoveredPath.value.map((hex) => `${hex.col},${hex.row}`)),
     );
 
     const currentPlayer = computed(
